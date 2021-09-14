@@ -21,48 +21,29 @@ def load_graph(model_file):
   return graph
 
 def read_tensor_from_image_file(file_name, input_height=299, input_width=299,
-				input_mean=0, input_std=255, mode="fname"):
-  '''
-  mode
-  fname : file_name이 *.* 형식 파일 이름 string으로 인풋되는 경우
-  npimg : file_name에 np array형식 이미지데이터가 input되는 경우
-  '''
-  if mode=="fname":
-    input_name = "file_reader"
-    output_name = "normalized"
-    file_reader = tf.read_file(file_name, input_name)
-    if file_name.endswith(".png"):
-      image_reader = tf.image.decode_png(file_reader, channels = 3,
-                                        name='png_reader')
-    elif file_name.endswith(".gif"):
-      image_reader = tf.squeeze(tf.image.decode_gif(file_reader,
-                                                    name='gif_reader'))
-    elif file_name.endswith(".bmp"):
-      image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
-    else:
-      image_reader = tf.image.decode_jpeg(file_reader, channels = 3,
-                                          name='jpeg_reader')
-    float_caster = tf.cast(image_reader, tf.float32)
-    dims_expander = tf.expand_dims(float_caster, 0);
-    resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
-    normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-    sess = tf.Session()
-    result = sess.run(normalized)
-
-    return result
-  
-  elif mode=="npimg":
-    float_caster = tf.cast(file_name, tf.float32)
-    dims_expander = tf.expand_dims(float_caster, 0);
-    resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
-    normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
-    sess = tf.Session()
-    result = sess.run(normalized)
-
-    return result
-  
+				input_mean=0, input_std=255):
+  input_name = "file_reader"
+  output_name = "normalized"
+  file_reader = tf.read_file(file_name, input_name)
+  if file_name.endswith(".png"):
+    image_reader = tf.image.decode_png(file_reader, channels = 3,
+                                       name='png_reader')
+  elif file_name.endswith(".gif"):
+    image_reader = tf.squeeze(tf.image.decode_gif(file_reader,
+                                                  name='gif_reader'))
+  elif file_name.endswith(".bmp"):
+    image_reader = tf.image.decode_bmp(file_reader, name='bmp_reader')
   else:
-    return -100
+    image_reader = tf.image.decode_jpeg(file_reader, channels = 3,
+                                        name='jpeg_reader')
+  float_caster = tf.cast(image_reader, tf.float32)
+  dims_expander = tf.expand_dims(float_caster, 0);
+  resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
+  normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+  sess = tf.Session()
+  result = sess.run(normalized)
+
+  return result
 
 def load_labels(label_file):
   label = []
@@ -71,12 +52,8 @@ def load_labels(label_file):
     label.append(l.rstrip())
   return label
 
-def classify(image_file, mode="fname"):
-  '''
-  mode
-  fname : file_name이 *.* 형식 파일 이름 string으로 인풋되는 경우
-  npimg : file_name에 np array형식 이미지데이터가 input되는 경우
-  '''
+def classify(image_file):
+    
 # =============================================================================
 #   Note : Provide your own absolute file path for the following
 #   You can choose the retrained graph of either as v1.0 or v2.0 
@@ -102,8 +79,7 @@ def classify(image_file, mode="fname"):
                                   input_height=input_height,
                                   input_width=input_width,
                                   input_mean=input_mean,
-                                  input_std=input_std,
-                                  mode=mode)
+                                  input_std=input_std)
 
   input_name = "import/" + input_layer
   output_name = "import/" + output_layer
