@@ -50,12 +50,12 @@ if __name__ == '__main__':
 	image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 	
 	# Classification
-	pose_class = act_class.classify(image, pose_graph)
+	action_class = act_class.classify(image, pose_graph)
 	scene_class = sce_class.classify(args.image)
 	end_time = time.time()
 	logger.debug('+displaying+')
 	cv2.putText(img,
-				"Predicted Pose: %s" %(pose_class),
+				"Predicted Pose: %s" %(action_class),
 				(10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
 				(0, 0, 255), 2)
 	cv2.putText(img,
