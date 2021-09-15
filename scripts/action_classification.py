@@ -44,21 +44,41 @@ def load_labels(label_file):
 
 
 file_path = os.path.abspath(os.path.dirname(__file__))
-path = os.path.join(file_path, '../models/graph/retrained/retrained_v1.0/')
-model_file = path+'retrained_graph.pb'
+
+'''
+default 모델
+'''
+# path = os.path.join(file_path, '../models/graph/retrained/retrained_v1.0/')
+# model_file = path+'retrained_graph.pb'
+# label_file = path+'retrained_labels.txt'
+# input_height = 224
+# input_width = 224
+# input_layer = "input"
+# output_layer = "final_result"
+
+
+'''
+retrained 모델
+'''
+path = os.path.join(file_path, '../tf_files/train_skeleton/')
+model_file = path+'output_graph.pb'
 label_file = path+'retrained_labels.txt'
-labels = load_labels(label_file)
 input_height = 224
 input_width = 224
-input_mean = 128
-input_std = 128
 input_layer = "input"
 output_layer = "final_result"
+
+labels = load_labels(label_file)
+input_mean = 128
+input_std = 128
 
 input_name = "import/" + input_layer
 output_name = "import/" + output_layer
 
 graph = load_graph(model_file)
+
+for op in graph.get_operations():
+  print(op.name, graph.get_tensor_by_name(op.name + ':0').shape)
 
 input_operation = graph.get_operation_by_name(input_name);
 output_operation = graph.get_operation_by_name(output_name);
