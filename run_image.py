@@ -8,7 +8,7 @@ import numpy as np
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
 import scripts.action_classification as act_class
-import scripts.scene_classification as scene_class
+import scripts.scene_classification as sce_class
 
 logger = logging.getLogger('Pose_Action_and_Scene_Understanding')
 logger.setLevel(logging.DEBUG)
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 	
 	# Classification
 	pose_class = act_class.classify(image, pose_graph)
-	scene_class = scene_class.classify(args.image)
+	scene_class = sce_class.classify(args.image)
 	end_time = time.time()
 	logger.debug('+displaying+')
 	cv2.putText(img,

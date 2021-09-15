@@ -8,7 +8,7 @@ import numpy as np
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
 import scripts.action_classification as act_class
-import scripts.scene_classification as scene_class
+import scripts.scene_classification as sce_class
 
 logger = logging.getLogger('TfPoseEstimator-WebCam')
 logger.setLevel(logging.DEBUG)
@@ -74,8 +74,7 @@ if __name__ == '__main__':
         
         # Classification
         pose_class = act_class.classify(frame, graph=pose_graph)
-        # scene_class = scene_class
-        #.classify(frame)
+        # scene_class = sce_class.classify(frame)
         
         logger.debug('+displaying+')
         cv2.putText(output_image,
