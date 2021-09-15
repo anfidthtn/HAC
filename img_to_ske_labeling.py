@@ -7,8 +7,6 @@ import numpy as np
 
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
-import scripts.label_image as label_img
-import scripts.label_image_scene as label_img_scene
 
 logger = logging.getLogger('Pose_Action_and_Scene_Understanding')
 logger.setLevel(logging.DEBUG)
@@ -41,11 +39,9 @@ if __name__ == '__main__':
 
             # count = 0
 
-            logger.debug('+image processing+')
             logger.debug('+postprocessing+')
             humans = e.inference(image, upsample_size=4.0)
-
-            logger.debug('+classification+')
+            
             # Getting only the skeletal structure (with white background) of the actual image
             image = np.zeros(image.shape,dtype=np.uint8)
             image.fill(255) 
