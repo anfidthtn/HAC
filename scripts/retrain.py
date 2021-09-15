@@ -83,11 +83,11 @@ for more information on Mobilenet.
 
 To use with TensorBoard:
 
-By default, this script will log summaries to /tmp/retrain_logs directory
+By default, this script will log summaries to tf_files/retrain_logs directory
 
 Visualize the summaries with this command:
 
-tensorboard --logdir /tmp/retrain_logs
+tensorboard --logdir tf_files/retrain_logs
 
 """
 from __future__ import absolute_import
@@ -1151,13 +1151,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_graph',
       type=str,
-      default='/tmp/output_graph.pb',
+      default='tf_files/output_graph.pb',
       help='Where to save the trained graph.'
   )
   parser.add_argument(
       '--intermediate_output_graphs_dir',
       type=str,
-      default='/tmp/intermediate_graph/',
+      default='tf_files/intermediate_graph/',
       help='Where to save the intermediate graphs.'
   )
   parser.add_argument(
@@ -1172,13 +1172,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_labels',
       type=str,
-      default='/tmp/output_labels.txt',
+      default='tf_files/output_labels.txt',
       help='Where to save the trained graph\'s labels.'
   )
   parser.add_argument(
       '--summaries_dir',
       type=str,
-      default='/tmp/retrain_logs',
+      default='tf_files/retrain_logs',
       help='Where to save summary logs for TensorBoard.'
   )
   parser.add_argument(
@@ -1252,7 +1252,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--model_dir',
       type=str,
-      default='/tmp/imagenet',
+      default='tf_files/imagenet',
       help="""\
       Path to classify_image_graph_def.pb,
       imagenet_synset_to_human_label_map.txt, and
@@ -1262,7 +1262,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--bottleneck_dir',
       type=str,
-      default='/tmp/bottleneck',
+      default='tf_files/bottleneck',
       help='Path to cache bottleneck layer values as files.'
   )
   parser.add_argument(
@@ -1324,3 +1324,48 @@ if __name__ == '__main__':
       """)
   FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+
+'''
+공통
+ske_training
+│
+└───Action-1
+│   │   ske_file011.jpg
+│   │   ske_file012.jpg
+│ 
+└───Action-2
+    │   ske_file021.jpg
+    │   ske_file022.jpg
+
+scene 학습
+python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=ske_training/
+(default로 inception_v3 아키텍처 사용)
+
+action 학습
+python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=ske_training/ --architecture=mobilenet_1.0_224
+(아키텍쳐 지정으로 mobilenet 아키텍처 사용)
+
+tf_files(dir)
+│
+│   output_graph.pb(file)
+│   retrained_labels(file)
+└───retrained_graph.pb(dir)
+└───retrain_logs(dir)
+└───bottleneck(dir)
+
+로 나오는 학습 데이터를
+tf_files(dir)
+│
+└───train_(non_)skeleton(dir)
+│   │   output_graph.pb(file)
+│   │   retrained_labels(file)
+│   └───retrained_graph.pb(dir)
+│   └───retrain_logs(dir)
+│   └───bottleneck(dir)
+
+이렇게 옮겨줘야함
+
+action_classification.py에서
+path 설정 tf_files에서 train_(non_)skeleton 디렉토리 체크 해줘야함
+
+'''
