@@ -21,6 +21,7 @@ logger.addHandler(ch)
 fps_time = 0
 
 if __name__ == '__main__':
+    # 각종 argument들을 받음.
     parser = argparse.ArgumentParser(description='tf-pose-estimation realtime webcam')
     parser.add_argument('--video', type=str, default='testvideo.mp4')
 
@@ -43,16 +44,22 @@ if __name__ == '__main__':
     logger.debug('video read+')
     video = cv2.VideoCapture(args.video)
     ret_val, frame = video.read()
-    while frame.shape[1] > 500:
+
+
+    # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
+    video_width_limit = 1000
+    while frame.shape[1] > video_width_limit:
         frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     logger.info('video frame=%dx%d' % (frame.shape[1], frame.shape[0]))
 
+    pose_graph = label_img.graph
     # count = 0
     while video.isOpened():
         
         logger.debug('+frame processing+')
         ret_val, frame = video.read()
-        while frame.shape[1] > 500:
+        # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
+        while frame.shape[1] > video_width_limit:
             frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
         
         logger.debug('+postprocessing+')
@@ -66,7 +73,7 @@ if __name__ == '__main__':
         skeleton_image = TfPoseEstimator.draw_humans(skeleton_image, humans, imgcopy=False)
         
         # Classification
-        pose_class = label_img.classify(frame)
+        pose_class = label_img.classify(frame, graph=pose_graph)
         # scene_class = label_img_scene.classify(frame)
         
         logger.debug('+displaying+')
@@ -98,5 +105,5 @@ if __name__ == '__main__':
 
 # =============================================================================
 # For running the script simply run the following in the cmd prompt/terminal :
-# python run_webcam.py --model=mobilenet_thin --resize=432x368 --camera=0
+# python run_video.py --video=testvideo.mp4
 # =============================================================================

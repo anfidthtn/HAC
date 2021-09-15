@@ -20,6 +20,9 @@ logger.addHandler(ch)
 
 fps_time = 0
 address = os.getcwd()
+
+pose_graph = label_img.graph
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='tf-human-action-classification')
 	parser.add_argument('--image', type=str, required=True)
@@ -47,7 +50,7 @@ if __name__ == '__main__':
 	image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 	
 	# Classification
-	pose_class = label_img.classify(image)
+	pose_class = label_img.classify(image, pose_graph)
 	scene_class = label_img_scene.classify(args.image)
 	end_time = time.time()
 	logger.debug('+displaying+')
