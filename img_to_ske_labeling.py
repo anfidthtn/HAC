@@ -50,4 +50,32 @@ if __name__ == '__main__':
             image = np.zeros(image.shape,dtype=np.uint8)
             image.fill(255) 
             image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
-            cv2.imwrite('ske_' + root + '\\' + file, image)
+            cv2.imwrite('ske_' + root + '\\ske_' + file, image)
+
+
+# python img_to_ske_labeling.py --dir=training
+'''
+input:
+training (original image)
+│
+└───normal
+│   │   file011.jpg
+│   │   file012.jpg
+│ 
+└───abnormal
+    │   file021.jpg
+    │   file022.jpg 
+
+output:
+ske_training (skeleton image with white background)
+│
+└───normal
+│   │   ske_file011.jpg
+│   │   ske_file012.jpg
+│ 
+└───abnormal
+    │   ske_file021.jpg
+    │   ske_file022.jpg 
+
+
+'''
