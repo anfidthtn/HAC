@@ -7,8 +7,8 @@ import numpy as np
 
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
-import scripts.label_image as label_img
-import scripts.label_image_scene as label_img_scene
+import scripts.action_classification as act_class
+import scripts.scene_classification as scene_class
 
 logger = logging.getLogger('TfPoseEstimator-WebCam')
 logger.setLevel(logging.DEBUG)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     logger.info('video frame=%dx%d' % (frame.shape[1], frame.shape[0]))
 
-    pose_graph = label_img.graph
+    pose_graph = act_class.graph
     # count = 0
     while video.isOpened():
         
@@ -73,8 +73,9 @@ if __name__ == '__main__':
         skeleton_image = TfPoseEstimator.draw_humans(skeleton_image, humans, imgcopy=False)
         
         # Classification
-        pose_class = label_img.classify(frame, graph=pose_graph)
-        # scene_class = label_img_scene.classify(frame)
+        pose_class = act_class.classify(frame, graph=pose_graph)
+        # scene_class = scene_class
+        #.classify(frame)
         
         logger.debug('+displaying+')
         cv2.putText(output_image,

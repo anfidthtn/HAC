@@ -7,8 +7,8 @@ import numpy as np
 
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
-import scripts.label_image as label_img
-import scripts.label_image_scene as label_img_scene
+import scripts.action_classification as act_class
+import scripts.scene_classification as scene_class
 
 logger = logging.getLogger('Pose_Action_and_Scene_Understanding')
 logger.setLevel(logging.DEBUG)
@@ -21,7 +21,7 @@ logger.addHandler(ch)
 fps_time = 0
 address = os.getcwd()
 
-pose_graph = label_img.graph
+pose_graph = act_class.graph
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='tf-human-action-classification')
@@ -50,8 +50,8 @@ if __name__ == '__main__':
 	image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 	
 	# Classification
-	pose_class = label_img.classify(image, pose_graph)
-	scene_class = label_img_scene.classify(args.image)
+	pose_class = act_class.classify(image, pose_graph)
+	scene_class = scene_class.classify(args.image)
 	end_time = time.time()
 	logger.debug('+displaying+')
 	cv2.putText(img,
