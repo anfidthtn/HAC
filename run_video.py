@@ -58,6 +58,7 @@ if __name__ == '__main__':
 
     # frame 읽기 실패한 횟수
     fail_count = 0
+    '''
     while video.isOpened():
         
         logger.debug('+frame processing+')
@@ -97,11 +98,20 @@ if __name__ == '__main__':
                         "%s" %(action_class),
                         (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                         (0, 0, 255), 2)
+            # cv2.putText(skeleton_image,
+            #             "%s" %(action_class),
+            #             (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+            #             (0, 0, 255), 2)
+        # normal
         elif action_class[0] == 'n':
             cv2.putText(output_image,
                         "%s" %(action_class),
                         (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                         (0, 255, 0), 2)
+            # cv2.putText(skeleton_image,
+            #             "%s" %(action_class),
+            #             (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+            #             (0, 255, 0), 2)
         # cv2.putText(output_image,
 		# 		"Predicted Scene: %s" %(scene_class),
 		# 		(10, 30),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
@@ -123,8 +133,81 @@ if __name__ == '__main__':
     video.release()
 
     cv2.destroyAllWindows()
+    '''
+    while video.isOpened():
+        
+        logger.debug('+frame processing+')
+        ret_val, frame = video.read()
+        # 100번 이상 프레임읽기 실패하면 스톱
+        if ret_val is False:
+            fail_count += 1
+            if fail_count > 100:
+                break
+            continue
+        # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
+        while frame.shape[1] > video_width_limit:
+            frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        
+        logger.debug('+postprocessing+')
+        # TfPoseEstimator에서 PreTrain 된 model을 통해 사람의 skeleton point를 찾아냄
+        humans = e.inference(frame, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
+
+        boundarys = TfPoseEstimator.get_humans_imgbox(frame, humans, 0.02)
+        output_image = frame
+
+        for boundary in boundarys:
+            # print(boundarys[boundary])
+            img_left = boundarys[boundary][0]
+            img_right = boundarys[boundary][1]
+            img_up = boundarys[boundary][2]
+            img_down = boundarys[boundary][3]
+            
+            # 해당 이미지 박스의 사람 skeleton을 그린다. (출력용)
+            # sub_img = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=True)
+            # 흰 바탕의 skeleton이미지만 남긴 것을 그린다. (판정용)
+            sub_img_ske = np.zeros(frame.shape,dtype=np.uint8)
+            sub_img_ske.fill(255) 
+            sub_img_ske = TfPoseEstimator.draw_humans(sub_img_ske, [humans[boundary]], imgcopy=False)
+            # 흰 바탕의 skeleton이미지로 어떤 액션인지(normal / abnormal) 판정한다.
+            action_class = act_class.classify(sub_img_ske, graph=action_graph)
+
+            # 판정한 것을 박스별로 출력한다.
+            if action_class[0] == 'a':
+                cv2.putText(output_image,
+                            "%s" %(action_class),
+                            (img_left, img_up + 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            (0, 0, 255), 2)
+                cv2.rectangle(output_image, (img_left, img_up), (img_right, img_down), (0, 0, 255))
+            # normal
+            elif action_class[0] == 'n':
+                cv2.putText(output_image,
+                            "%s" %(action_class),
+                            (img_left, img_up + 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            (0, 255, 0), 2)
+                cv2.rectangle(output_image, (img_left, img_up), (img_right, img_down), (0, 255, 0))
+            
+            # 찾아낸 skeleton point를 output image에 점과 연결선으로 표시
+            output_image = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=False)
+        
+        cv2.imshow('tf-pose-estimation result', output_image)
+        
+        fps_time = time.time()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        logger.debug('+finished+')
+        
+        # For gathering training data 
+        # title = 'img'+str(count)+'.jpeg'
+        # path = <enter any path you want>
+        # cv2.imwrite(os.path.join(path , title), image)
+        # count += 1
+    
+    video.release()
+
+    cv2.destroyAllWindows()
 
 # =============================================================================
 # For running the script simply run the following in the cmd prompt/terminal :
 # python run_video.py --video=testvideo.mp4
+# python run_video.py --video=test_video/488-1_cam01_vandalism01_place09_day_spring_1.mp4
 # =============================================================================

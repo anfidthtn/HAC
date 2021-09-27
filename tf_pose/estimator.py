@@ -233,7 +233,7 @@ class Human:
                 "h": _round(y2 - y)}
 
     def __str__(self):
-        return ' '.join([str(x) for x in self.body_parts.values()])
+        return '\n'.join([str(x) for x in self.body_parts.values()])
 
     def __repr__(self):
         return self.__str__()
@@ -403,6 +403,54 @@ class TfPoseEstimator:
                 cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
 
         return npimg
+
+    def get_humans_imgbox(npimg, humans, restrict_ratio=0.1):
+        image_h, image_w = npimg.shape[:2]
+        imgbox_info = {}
+        for human_num, human in enumerate(humans):
+            min_width = image_w
+            max_width = 0
+            min_height = image_h
+            max_height = 0
+            # draw point
+            for i in range(common.CocoPart.Background.value):
+                if i not in human.body_parts.keys():
+                    continue
+
+                body_part = human.body_parts[i]
+                center = (int(body_part.x * image_w + 0.5), int(body_part.y * image_h + 0.5))
+                if center[0] < min_width:
+                    min_width = center[0]
+                if center[0] > max_width:
+                    max_width = center[0]
+                if center[1] < min_height:
+                    min_height = center[1]
+                if center[1] > max_height:
+                    max_height = center[1]
+
+            sub_img_width = max_width - min_width
+            sub_img_height = max_height - min_height
+            # 전체 이미지에서 크기가 상대적으로 작게(기본 0.1)잡힌 사람의 경우 오류로 판단하여 스킵함.
+            if sub_img_width < image_w * restrict_ratio:
+                continue
+            if sub_img_height < image_h * restrict_ratio:
+                continue
+            
+            # 가로는 스켈레톤의 좌우보다 조금 길게
+            cen_width = int((min_width + max_width) / 2)
+            n_min_width = max(0, cen_width - int(sub_img_width * 1.2 / 2))
+            n_max_width = min(image_w, cen_width + int(sub_img_width * 1.2 / 2))
+
+            # 세로는 스켈레톤의 좌우보다 많이 길게
+            cen_height = int((min_height + max_height) / 2)
+            n_min_height = max(0, cen_height - int(sub_img_height * 1.3 / 2))
+            n_max_height = min(image_h, cen_height + int(sub_img_height * 1.3 / 2))
+
+            imgbox_info[human_num] = (n_min_width, n_max_width, n_min_height, n_max_height)
+
+
+
+        return imgbox_info
 
     def _get_scaled_img(self, npimg, scale):
         get_base_scale = lambda s, w, h: max(self.target_size[0] / float(h), self.target_size[1] / float(w)) * s
