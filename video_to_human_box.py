@@ -159,7 +159,7 @@ if __name__ == '__main__':
             if fail_count > 100:
                 break
             continue
-        if frame_num % 30 != 0:
+        if frame_num % 10 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
         while frame.shape[1] > video_width_limit:

@@ -147,7 +147,7 @@ if __name__ == '__main__':
             if fail_count > 100:
                 break
             continue
-        if frame_num % 15 != 0:
+        if frame_num % 30 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
         while frame.shape[1] > video_width_limit:
@@ -159,7 +159,10 @@ if __name__ == '__main__':
 
         boundarys = TfPoseEstimator.get_humans_imgbox(frame, humans, 0.02)
         output_image = frame
-
+        cv2.putText(output_image,
+                            "%d" %(frame_num),
+                            (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                            (0, 0, 255), 2)
         for boundary in boundarys:
             # print(boundarys[boundary])
             img_left = boundarys[boundary][0]
@@ -174,7 +177,7 @@ if __name__ == '__main__':
             sub_img_ske.fill(255) 
             sub_img_ske = TfPoseEstimator.draw_humans(sub_img_ske, [humans[boundary]], imgcopy=False)
             # 흰 바탕의 skeleton이미지로 어떤 액션인지(normal / abnormal) 판정한다.
-            action_class = act_class.classify(sub_img_ske, graph=action_graph)
+            action_class = act_class.classify(sub_img_ske[img_up:img_down, img_left:img_right], graph=action_graph)
 
             # 판정한 것을 박스별로 출력한다.
             if action_class[0] == 'a':
@@ -192,7 +195,7 @@ if __name__ == '__main__':
                 cv2.rectangle(output_image, (img_left, img_up), (img_right, img_down), (0, 255, 0))
             
             # 찾아낸 skeleton point를 output image에 점과 연결선으로 표시
-            output_image = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=False)
+            # output_image = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=False)
         
         cv2.imshow('tf-pose-estimation result', output_image)
         
