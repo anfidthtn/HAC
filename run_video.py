@@ -134,7 +134,10 @@ if __name__ == '__main__':
 
     cv2.destroyAllWindows()
     '''
+
+    frame_num = 0
     while video.isOpened():
+        frame_num += 1
         
         logger.debug('+frame processing+')
         ret_val, frame = video.read()
@@ -143,6 +146,8 @@ if __name__ == '__main__':
             fail_count += 1
             if fail_count > 100:
                 break
+            continue
+        if frame_num % 15 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
         while frame.shape[1] > video_width_limit:

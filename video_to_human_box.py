@@ -153,13 +153,13 @@ if __name__ == '__main__':
 
         logger.debug('+frame processing+')
         ret_val, frame = video.read()
-        if frame_num % 30 != 0:
-            continue
         # 100번 이상 프레임읽기 실패하면 스톱
         if ret_val is False:
             fail_count += 1
             if fail_count > 100:
                 break
+            continue
+        if frame_num % 30 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
         while frame.shape[1] > video_width_limit:
