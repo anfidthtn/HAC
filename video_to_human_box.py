@@ -50,7 +50,7 @@ if __name__ == '__main__':
     ret_val, frame = video.read()
 
     # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
-    video_width_limit = 1000
+    video_width_limit = 4000
     while frame.shape[1] > video_width_limit:
         frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     logger.info('video frame=%dx%d' % (frame.shape[1], frame.shape[0]))
@@ -137,10 +137,19 @@ if __name__ == '__main__':
     '''
 
     path = 'dataset\\' + args.video
-    path = path.split('.')[0]
-    path = path.replace('test_video/', '')
-    ske_path = path + '\\ske'
-    img_path = path + '\\img'
+    path = path.split('.')
+    temp = []
+    for p in path:
+        for a in p.split('\\'):
+            temp.append(a)
+    path = []
+    for p in temp:
+        for a in p.split('/'):
+            path.append(a)
+    path = path[-2]
+    ske_path = 'dataset\\' + path + '\\ske'
+    img_path = 'dataset\\' + path + '\\img'
+
     print(ske_path, img_path)
     if not os.path.exists(img_path):
         os.makedirs(img_path)
@@ -159,7 +168,7 @@ if __name__ == '__main__':
             if fail_count > 100:
                 break
             continue
-        if frame_num % 10 != 0:
+        if frame_num % 30 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
         while frame.shape[1] > video_width_limit:
