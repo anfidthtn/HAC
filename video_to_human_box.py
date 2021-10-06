@@ -1,3 +1,8 @@
+'''
+video_to_human_box.py : 동영상 파일에서 사람의 스켈레톤 이미지를 추출하여 동작을 판단하는 python 파일
+대표적인 argument
+--video : 동영상 파일 (확장자까지)
+'''
 import argparse
 import logging
 import time
@@ -36,7 +41,7 @@ if __name__ == '__main__':
                         help='for debug purpose, if enabled, speed for inference is dropped.')
     args = parser.parse_args()
 
-    # img to ske img 해주는 TfPoseEstimator model 로딩과 초기화
+    # 이미지에서 스켈레톤 이미지를 뽑아주는 TfPoseEstimator model 로딩과 초기화
     logger.debug('initialization %s : %s' % (args.model, get_graph_path(args.model)))
     w, h = model_wh(args.resize)
     if w > 0 and h > 0:
@@ -49,114 +54,64 @@ if __name__ == '__main__':
     video = cv2.VideoCapture(args.video)
     ret_val, frame = video.read()
 
-    # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
+    # video width 가 너무 크면 속도가 느려져서 일정 제한 이상에서 width와 height를 절반으로 downscaling함
     video_width_limit = 4000
     while frame.shape[1] > video_width_limit:
         frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     logger.info('video frame=%dx%d' % (frame.shape[1], frame.shape[0]))
 
+    # 모델(의 그래프)을 불러옴
     action_graph = act_class.graph
 
-    # frame 읽기 실패한 횟수
-    fail_count = 0
     '''
-    while video.isOpened():
-        
-        logger.debug('+frame processing+')
-        ret_val, frame = video.read()
-        # 100번 이상 프레임읽기 실패하면 스톱
-        if ret_val is False:
-            fail_count += 1
-            if fail_count > 100:
-                break
-            continue
-        # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
-        while frame.shape[1] > video_width_limit:
-            frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-        
-        logger.debug('+postprocessing+')
-        # TfPoseEstimator에서 PreTrain 된 model을 통해 사람의 skeleton point를 찾아냄
-        humans = e.inference(frame, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
-        # 찾아낸 skeleton point를 output image에 점과 연결선으로 표시
-        output_image = TfPoseEstimator.draw_humans(frame, humans, imgcopy=False)
-        
-        logger.debug('+classification+')
-        # Getting only the skeletal structure (with white background) of the actual image
-        # 흰 바탕에 skeleton 이미지만을 그린 이미지 생성
-        skeleton_image = np.zeros(frame.shape,dtype=np.uint8)
-        skeleton_image.fill(255) 
-        skeleton_image = TfPoseEstimator.draw_humans(skeleton_image, humans, imgcopy=False)
-        
-        # Classification
-        # action을 분류하기 위해 skeleton image를 action 분류 모델에 넣음
-        action_class = act_class.classify(skeleton_image, graph=action_graph)
-        # scene_class = sce_class.classify(frame)
-        
-        logger.debug('+displaying+')
-        # abnormal 
-        if action_class[0] == 'a':
-            cv2.putText(output_image,
-                        "%s" %(action_class),
-                        (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (0, 0, 255), 2)
-            # cv2.putText(skeleton_image,
-            #             "%s" %(action_class),
-            #             (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-            #             (0, 0, 255), 2)
-        # normal
-        elif action_class[0] == 'n':
-            cv2.putText(output_image,
-                        "%s" %(action_class),
-                        (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (0, 255, 0), 2)
-            # cv2.putText(skeleton_image,
-            #             "%s" %(action_class),
-            #             (20, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-            #             (0, 255, 0), 2)
-        # cv2.putText(output_image,
-		# 		"Predicted Scene: %s" %(scene_class),
-		# 		(10, 30),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-		# 		(0, 0, 255), 2)
-        
-        cv2.imshow('tf-pose-estimation result', output_image)
-        
-        fps_time = time.time()
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        logger.debug('+finished+')
-        
-        # For gathering training data 
-        # title = 'img'+str(count)+'.jpeg'
-        # path = <enter any path you want>
-        # cv2.imwrite(os.path.join(path , title), image)
-        # count += 1
-    
-    video.release()
-
-    cv2.destroyAllWindows()
+    args.video에서 입력된 (경로)동영상 이름.확장자에서
+    동영상 이름만 빼 와서
+    dataset\\동영상 이름\\ske
+    dataset\\동영상 이름\\img
+    이렇게 두 가지 폴더 경로를 만듦
+    사실 코딩 개판으로 함. 다시 하라면 더 깔끔하게 할 것임.
     '''
-
-    path = 'dataset\\' + args.video
+    # 경로를 받음
+    path = args.video
+    # 확장자 자르는 용도로 .단위로 스플릿함 (폴더 이름에 .넣는 경우도 있는데 파일 이름에 확장자표시 말고 추가로 없으면 상관없음)
+    # 해당 결과 path는 [(경로들)+동영상이름, 확장자]가 됨. ((경로들)이 절대경로(c:, d:어쩌구)라도 상관없음)
     path = path.split('.')
+
+    # 잘린거에서 백슬래시(\)를 없애기 위해 그걸로 스플릿하여 temp에 넣음
+    # 해당 결과 temp는 (경로들)이 \로 이루어졌다면 [폴더명, 폴더명, .. , 동영상이름, 확장자]가 됨
+    # (경로들)이 /로 이루어졌다면 [폴더명/폴더명/.../동영상이름, 확장자]가 됨
     temp = []
     for p in path:
         for a in p.split('\\'):
             temp.append(a)
+    # 위의 과정과 마찬가지로 슬래시(/) 경로를 처리
+    # 해당 결과 path는 무조건 [폴더명, 폴더명, ... , 폴더명, 동영상이름, 확장자]가 됨
     path = []
     for p in temp:
         for a in p.split('/'):
             path.append(a)
+    # path의 뒤에서 1번째는 확장자, 2번째는 동영상 이름이므로 2번째를 path로 저장
     path = path[-2]
+    # 사람의 skeleton image 저장 경로를 dataset\\path\\ske로 만듦
     ske_path = 'dataset\\' + path + '\\ske'
+    # 사람의 image 저장 경로를 dataset\\path\\ske로 만듦
     img_path = 'dataset\\' + path + '\\img'
 
+    # 해당 폴더가 없다면 만듦
     print(ske_path, img_path)
     if not os.path.exists(img_path):
         os.makedirs(img_path)
     if not os.path.exists(ske_path):
         os.makedirs(ske_path)
 
+
+    # frame 읽기 실패한 횟수
+    fail_count = 0
+
+    # 토탈 몇 번째 프레임인지 세는 변수
     frame_num = 0
+
+    # 동영상 읽음
     while video.isOpened():
         frame_num += 1
 
@@ -168,6 +123,7 @@ if __name__ == '__main__':
             if fail_count > 100:
                 break
             continue
+        # 몇 프레임마다 1번 추출할지 지정 (현재 30프레임으로 지정)
         if frame_num % 30 != 0:
             continue
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
@@ -178,21 +134,29 @@ if __name__ == '__main__':
         # TfPoseEstimator에서 PreTrain 된 model을 통해 사람의 skeleton point를 찾아냄
         humans = e.inference(frame, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
 
+        # skeleton point를 통해 한 프레임에서 사람들의 범위를 상하좌우 픽셀단위로 변환함.
         boundarys = TfPoseEstimator.get_humans_imgbox(frame, humans, 0.02)
 
-        for boundary in boundarys:
-            # print(boundarys[boundary])
-            img_left = boundarys[boundary][0]
-            img_right = boundarys[boundary][1]
-            img_up = boundarys[boundary][2]
-            img_down = boundarys[boundary][3]
+        # boundarys : {사람1 : [left, right, up, down], 사람2 : [left, right, up, down], ... }
+        for num_of_human in boundarys:
+            # 각 변수들을 더 직관적으로 임시저장
+            img_left = boundarys[num_of_human][0]
+            img_right = boundarys[num_of_human][1]
+            img_up = boundarys[num_of_human][2]
+            img_down = boundarys[num_of_human][3]
 
-            cv2.imwrite(img_path + "\\%05d_%02d.jpg" % (frame_num, boundary), frame[img_up:img_down, img_left:img_right])
+            # 이미지에서 사람부분만 따서 프레임넘버_사람 넘버.jpg로 이미지 폴더에 저장한다.
+            cv2.imwrite(img_path + "\\%05d_%02d.jpg" % (frame_num, num_of_human), frame[img_up:img_down, img_left:img_right])
             
+            # 프레임 크기와 동일한 흰 바탕의 이미지를 그린다.
             ske_img = np.zeros(frame.shape,dtype=np.uint8)
             ske_img.fill(255) 
-            ske_img = TfPoseEstimator.draw_humans(ske_img, [humans[boundary]], imgcopy=True)
-            cv2.imwrite(ske_path + "\\%05d_%02d.jpg" % (frame_num, boundary), ske_img[img_up:img_down, img_left:img_right])
+
+            # 해당 이미지 위에다가 num_of_human 번째 사람의 skeleton 이미지를 그린다.
+            ske_img = TfPoseEstimator.draw_humans(ske_img, [humans[num_of_human]], imgcopy=True)
+
+            # 흰 바탕의 스켈레톤 이미지 그려진 부분만 따서 프레임넘버_사람 넘버.jpg로 스켈레톤 이미지 폴더에 저장한다.
+            cv2.imwrite(ske_path + "\\%05d_%02d.jpg" % (frame_num, num_of_human), ske_img[img_up:img_down, img_left:img_right])
 
         
         fps_time = time.time()
