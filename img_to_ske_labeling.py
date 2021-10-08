@@ -1,3 +1,9 @@
+'''
+img_to_ske_labeling.py : 이미지 파일들을 스켈레톤 파일로 변환하는 파일
+사실 만들어놨는데 video_to_human_box.py를 만들면서 필요없어졌다.
+
+사용 방법은 아래에 있다.
+'''
 import argparse
 import logging
 import time

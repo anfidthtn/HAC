@@ -377,21 +377,31 @@ class TfPoseEstimator:
         npimg_q = npimg_q.astype(np.uint8)
         return npimg_q
 
+
+    '''
+    이미 만들어진 함수
+    npimg : 이미지의 nparray
+    humans : 이미지의 사람
+    imgcopy : 원본(npimg로 들어온 것)에도 그려진 이미지가 그려지도록 할지 말지
+    '''
     @staticmethod
     def draw_humans(npimg, humans, imgcopy=False):
         if imgcopy:
             npimg = np.copy(npimg)
         image_h, image_w = npimg.shape[:2]
         centers = {}
+        # 각 사람별로
         for human in humans:
             max_width = 0
             max_height = 0
             # draw point
+            # 각 부위별로 점을 그린다.
             for i in range(common.CocoPart.Background.value):
                 if i not in human.body_parts.keys():
                     continue
 
                 body_part = human.body_parts[i]
+                # center에 각 좌표를 받는다.
                 center = (int(body_part.x * image_w + 0.5), int(body_part.y * image_h + 0.5))
                 if center[0] > max_width:
                     max_width = center[0]
@@ -403,6 +413,7 @@ class TfPoseEstimator:
                 cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
 
             # draw line
+            # 각 부위별로 연결할 부위를 연결한다.
             for pair_order, pair in enumerate(common.CocoPairsRender):
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
                     continue
@@ -410,23 +421,39 @@ class TfPoseEstimator:
                 # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
 
+        # 그림을 그린 이미지를 반환함
         return npimg
 
+    '''
+    직접 만든 함수
+    npimg : 이미지의 nparray
+    humans : 이미지의 사람
+    restrict_ratio : 비율제한(사람이 너무 작게 잡히면 오류로 판정할 이미지 비율)
+    예를 들어 이미지가 100 * 100인데 ratio가 0.1이면 10픽셀 이하의 사람은 무시
+    '''
     def get_humans_imgbox(npimg, humans, restrict_ratio=0.1):
         image_h, image_w = npimg.shape[:2]
+        # 이미지의 사람 범위를 저장할 dictionary 만듦
         imgbox_info = {}
+        # human_num이 dictionary의 key역할을 할 예정
         for human_num, human in enumerate(humans):
+            # 각 human마다 이미지의 어디에 있는지 범위를 찾음
             min_width = image_w
             max_width = 0
             min_height = image_h
             max_height = 0
-            # draw point
+
+            # 각 사람의 각 부위별로 처리를 함
             for i in range(common.CocoPart.Background.value):
+                # 없는 부위는 패스
                 if i not in human.body_parts.keys():
                     continue
 
                 body_part = human.body_parts[i]
+                # center에 해당 부위의 (x, y)좌표가 계산됨
                 center = (int(body_part.x * image_w + 0.5), int(body_part.y * image_h + 0.5))
+
+                # x, y좌표 각각 최대 최소와 비교해가면서 최대 최소를 갱신함
                 if center[0] < min_width:
                     min_width = center[0]
                 if center[0] > max_width:
@@ -435,7 +462,9 @@ class TfPoseEstimator:
                     min_height = center[1]
                 if center[1] > max_height:
                     max_height = center[1]
+            # 모든 부위에 대해 최대 최소가 갱신되면 해당 사람 이미지의 범위가 대략적으로 나옴
 
+            # 크기 계산을 함
             sub_img_width = max_width - min_width
             sub_img_height = max_height - min_height
             # 전체 이미지에서 크기가 상대적으로 작게(기본 0.1)잡힌 사람의 경우 오류로 판단하여 스킵함.
@@ -444,6 +473,8 @@ class TfPoseEstimator:
             if sub_img_height < image_h * restrict_ratio:
                 continue
             
+            # 사람의 스켈레톤 위치보다 사람의 실제 범위가 더 크기에 위치 보정을 좀 더 크게 함
+
             # 가로는 스켈레톤의 좌우보다 조금 길게
             cen_width = int((min_width + max_width) / 2)
             n_min_width = max(0, cen_width - int(sub_img_width * 1.2 / 2))
@@ -454,10 +485,11 @@ class TfPoseEstimator:
             n_min_height = max(0, cen_height - int(sub_img_height * 1.3 / 2))
             n_max_height = min(image_h, cen_height + int(sub_img_height * 1.3 / 2))
 
+            # {사람 번호 : (좌, 우, 상, 하)}로 저장
             imgbox_info[human_num] = (n_min_width, n_max_width, n_min_height, n_max_height)
 
 
-
+        # 반환
         return imgbox_info
 
     def _get_scaled_img(self, npimg, scale):
