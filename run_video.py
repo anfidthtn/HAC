@@ -6,6 +6,7 @@ run_video.py : 동영상 파일에서 사람의 스켈레톤 이미지를 추출
 import argparse
 import logging
 import time
+import os
 
 import cv2
 import numpy as np
@@ -67,9 +68,33 @@ if __name__ == '__main__':
     # 동영상 파일의 초당 프레임 수
     video_fps = 30
 
+    # 경로를 받음
+    path = args.video
+    # 확장자 자르는 용도로 .단위로 스플릿함 (폴더 이름에 .넣는 경우도 있는데 파일 이름에 확장자표시 말고 추가로 없으면 상관없음)
+    # 해당 결과 path는 [(경로들)+동영상이름, 확장자]가 됨. ((경로들)이 절대경로(c:, d:어쩌구)라도 상관없음)
+    path = path.split('.')
+
+    # 잘린거에서 백슬래시(\)를 없애기 위해 그걸로 스플릿하여 temp에 넣음
+    # 해당 결과 temp는 (경로들)이 \로 이루어졌다면 [폴더명, 폴더명, .. , 동영상이름, 확장자]가 됨
+    # (경로들)이 /로 이루어졌다면 [폴더명/폴더명/.../동영상이름, 확장자]가 됨
+    temp = []
+    for p in path:
+        for a in p.split('\\'):
+            temp.append(a)
+    # 위의 과정과 마찬가지로 슬래시(/) 경로를 처리
+    # 해당 결과 path는 무조건 [폴더명, 폴더명, ... , 폴더명, 동영상이름, 확장자]가 됨
+    path = []
+    for p in temp:
+        for a in p.split('/'):
+            path.append(a)
+    # path의 뒤에서 1번째는 확장자, 2번째는 동영상 이름이므로 2번째를 video_name로 저장
+    video_name = path[-2]
+
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    delay = round(1000/video_fps)
-    out = cv2.VideoWriter('output.avi', fourcc, 10, (frame.shape[1], frame.shape[0]), isColor=True)
+    if not os.path.exists('output_video'):
+        os.makedirs('output_video')
+    out = cv2.VideoWriter('output_video\\output_' + video_name + '.avi', fourcc, 10, (frame.shape[1], frame.shape[0]), isColor=True)
+
     # 현재 처리중인 프레임 번호
     processing_frame = 0
 
@@ -101,8 +126,8 @@ if __name__ == '__main__':
         if processing_frame % 5 != 0:
             continue
 
-        if processing_frame > 250:
-            break
+        # if processing_frame > 250:
+        #     break
 
 
         '''
