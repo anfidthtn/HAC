@@ -65,8 +65,9 @@ if __name__ == '__main__':
     fps_time = time.time()
     frame_count = 0
 
-
-
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    delay = round(1000/video_fps)
+    out = cv2.VideoWriter('output.avi', fourcc, 10, (frame.shape[1], frame.shape[0]), isColor=True)
 
     while video.isOpened():
         processing_frame += 1
@@ -80,8 +81,15 @@ if __name__ == '__main__':
             if fail_count > 100:
                 break
             continue
-        if time.time() - fps_time > frame_count / video_fps:
+        # if time.time() - fps_time > frame_count / video_fps:
+        #     continue
+
+        if processing_frame % 5 != 0:
             continue
+
+        if processing_frame > 250:
+            break
+
         fps_time = time.time()
         frame_count = 0
         # video width 가 너무 크면 속도가 느려져서 width와 height를 절반으로 downscaling함
@@ -132,8 +140,10 @@ if __name__ == '__main__':
             # 찾아낸 skeleton point를 output image에 점과 연결선으로 표시
             # output_image = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=False)
         
-        cv2.imshow('tf-pose-estimation result', output_image[200:480, 300:800])
-        
+        cv2.imshow('tf-pose-estimation result', output_image)
+
+        out.write(output_image)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
         # logger.debug('+finished+')

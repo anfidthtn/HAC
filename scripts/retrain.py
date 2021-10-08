@@ -1184,7 +1184,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--how_many_training_steps',
       type=int,
-      default=4000,
+      default=1000,
       help='How many training steps to run before ending.'
   )
   parser.add_argument(
@@ -1342,7 +1342,7 @@ python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_label
 (default로 inception_v3 아키텍처 사용)
 
 action 학습
-python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=ske_training/ --architecture=mobilenet_1.0_224
+python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=training/ --architecture=mobilenet_1.0_224
 (아키텍쳐 지정으로 mobilenet 아키텍처 사용)
 
 tf_files(dir)

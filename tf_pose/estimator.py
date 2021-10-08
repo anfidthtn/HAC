@@ -400,7 +400,7 @@ class TfPoseEstimator:
                 max_pixel = max(max_height, max_width)
                 unit_size = max(1, int(max_pixel / 50))
                 centers[i] = center
-                cv2.circle(npimg, center, int(unit_size/2), common.CocoColors[i], thickness=unit_size, lineType=8, shift=0)
+                cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
 
             # draw line
             for pair_order, pair in enumerate(common.CocoPairsRender):
@@ -408,7 +408,7 @@ class TfPoseEstimator:
                     continue
 
                 # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
-                cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], int(unit_size/2))
+                cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
 
         return npimg
 
