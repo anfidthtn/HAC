@@ -54,10 +54,11 @@ if __name__ == '__main__':
     ret_val, frame = video.read()
 
     # video width 가 너무 크면 속도가 느려져서 일정 제한 이상에서 width와 height를 절반으로 downscaling함
-    video_width_limit = 4000
+    video_width_limit = 1000
     while frame.shape[1] > video_width_limit:
         frame = cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     logger.info('video frame=%dx%d' % (frame.shape[1], frame.shape[0]))
+    
 
     # 모델(의 그래프)을 불러옴
     action_graph = act_class.graph
@@ -215,7 +216,7 @@ if __name__ == '__main__':
             
             # 찾아낸 skeleton point를 output image에 점과 연결선으로 표시
             # 출력이미지에도 스켈레톤 이미지를 그리는 것인데, 그리면 복잡해져서 안 그리는게 더 나아보인다.
-            # output_image = TfPoseEstimator.draw_humans(frame, [humans[boundary]], imgcopy=False)
+            # output_image = TfPoseEstimator.draw_humans(frame, [humans[num_of_human]], imgcopy=False)
         
         out.write(output_image)
 
