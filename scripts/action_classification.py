@@ -60,9 +60,9 @@ default 모델
 '''
 retrained 모델
 '''
-path = os.path.join(file_path, '../tf_files/train_skeleton/')
+path = os.path.join(file_path, '../models/retrained_mobilenet_models/trained_model/')
 model_file = path+'output_graph.pb'
-label_file = path+'retrained_labels.txt'
+label_file = path+'output_labels.txt'
 input_height = 224
 input_width = 224
 input_layer = "input"
@@ -77,8 +77,8 @@ output_name = "import/" + output_layer
 
 graph = load_graph(model_file)
 
-for op in graph.get_operations():
-  print(op.name, graph.get_tensor_by_name(op.name + ':0').shape)
+# for op in graph.get_operations():
+#   print(op.name, graph.get_tensor_by_name(op.name + ':0').shape)
 
 input_operation = graph.get_operation_by_name(input_name);
 output_operation = graph.get_operation_by_name(output_name);
@@ -123,13 +123,10 @@ def classify(image_file, graph):
 
 
   print('\nEvaluation time (1-image): {:.3f}s\n'.format(end-start))
-  template = "{} (score={:0.5f})"
-  label = ''
-  if results[0] > results[1]:
-      label = labels[0]
-      result = results[0]
-  else:
-      label = labels[1]
-      result = results[1]
+  return_predict = {'predict_action' : labels[0], 'predict_score' : results[0]}
+  for idx, result in enumerate(results[1:]):
+    if return_predict['predict_score'] < result:
+      return_predict['predict_action'] = labels[idx]
+      return_predict['predict_score'] = result
 
-  return template.format(label, result)
+  return return_predict

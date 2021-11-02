@@ -986,6 +986,7 @@ def main(_):
   # Look at the folder structure, and create lists of all the images.
   image_lists = create_image_lists(FLAGS.image_dir, FLAGS.testing_percentage,
                                    FLAGS.validation_percentage)
+
   class_count = len(image_lists.keys())
   if class_count == 0:
     tf.logging.error('No valid folders of images found at ' + FLAGS.image_dir)
@@ -1151,13 +1152,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_graph',
       type=str,
-      default='tf_files/output_graph.pb',
+      default='models/retrained_mobilenet_models/trained_model/output_graph.pb',
       help='Where to save the trained graph.'
   )
   parser.add_argument(
       '--intermediate_output_graphs_dir',
       type=str,
-      default='tf_files/intermediate_graph/',
+      default='models/retrained_mobilenet_models/trained_model/intermediate_graph/',
       help='Where to save the intermediate graphs.'
   )
   parser.add_argument(
@@ -1172,13 +1173,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_labels',
       type=str,
-      default='tf_files/output_labels.txt',
+      default='models/retrained_mobilenet_models/trained_model/output_labels.txt',
       help='Where to save the trained graph\'s labels.'
   )
   parser.add_argument(
       '--summaries_dir',
       type=str,
-      default='tf_files/retrain_logs',
+      default='models/retrained_mobilenet_models/trained_model/retrain_logs',
       help='Where to save summary logs for TensorBoard.'
   )
   parser.add_argument(
@@ -1196,13 +1197,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--testing_percentage',
       type=int,
-      default=10,
+      default=20,
       help='What percentage of images to use as a test set.'
   )
   parser.add_argument(
       '--validation_percentage',
       type=int,
-      default=10,
+      default=20,
       help='What percentage of images to use as a validation set.'
   )
   parser.add_argument(
@@ -1337,12 +1338,8 @@ ske_training
     │   ske_file021.jpg
     │   ske_file022.jpg
 
-scene 학습
-python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=ske_training/
-(default로 inception_v3 아키텍처 사용)
-
 action 학습
-python scripts/retrain.py --model_dir=tf_files/retrained_graph.pb --output_labels=tf_files/retrained_labels.txt --image_dir=training/ --architecture=mobilenet_1.0_224
+python scripts/retrain.py --image_dir=training/ --architecture=mobilenet_1.0_224
 (아키텍쳐 지정으로 mobilenet 아키텍처 사용)
 
 tf_files(dir)
